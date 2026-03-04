@@ -3,8 +3,8 @@ namespace LeetCode;
 public class Solution {
     public ListNode AddTwoNumbers(ListNode l1, ListNode l2)
     {
-        l1 = new ListNode(1);
-        l2 = new ListNode(9, new ListNode(9));
+        l1 = new ListNode(5);
+        l2 = new ListNode(5);
         
         var l1temp = l1;
         var l2temp = l2;
@@ -29,6 +29,7 @@ public class Solution {
     }
 
     private ListNode ResultEntryNode { get; set; }
+    private Dictionary<ListNode,ListNode> PreviousNodes = new Dictionary<ListNode, ListNode>();
 
     private ListNode SumListNodes(ListNode l1, ListNode l2, ListNode previousResultNode)
     {
@@ -45,13 +46,13 @@ public class Solution {
         var carry = result > 9 ? 1 : 0;
 
         result = result % 10;
-                
-        if(carry == 1){
-            previousResultNode?.val += 1;
-        }
-
+        
         var resultNode = new ListNode(result);
-
+                
+        if(carry == 1 && previousResultNode != null){
+            HandleCarry(previousResultNode);
+        }
+        
         if (previousResultNode == null)
         {
             if (carry == 1)
@@ -59,6 +60,7 @@ public class Solution {
                 previousResultNode = new ListNode(1);
                 previousResultNode.next = resultNode;
                 ResultEntryNode = previousResultNode;
+                PreviousNodes.Add(resultNode, previousResultNode);
             }
             else
             {
@@ -68,8 +70,29 @@ public class Solution {
         else
         {
             previousResultNode.next = resultNode;   
+            PreviousNodes.Add(resultNode, previousResultNode);
         }
         
         return SumListNodes(l1?.next, l2?.next, resultNode);
+    }
+
+    private void HandleCarry(ListNode? previousNode)
+    {
+        previousNode.val += 1;
+
+        if (previousNode.val > 9)
+        {
+            previousNode.val %= 10;
+            var previousNodeHasFather = PreviousNodes.TryGetValue(previousNode, out var previousNodesFather);
+            if (previousNodeHasFather)
+            {
+                HandleCarry(previousNodesFather);
+            }
+            else
+            {
+                var finalResult = new ListNode(1, previousNode);
+                ResultEntryNode = finalResult;
+            }
+        }
     }
 }
